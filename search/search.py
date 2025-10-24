@@ -165,8 +165,36 @@ def depth_first_search(problem):
 
 def breadth_first_search(problem):
     """Search the shallowest nodes in the search tree first."""
-    "*** YOUR CODE HERE ***"
-    util.raise_not_defined()
+    
+    start = problem.get_start_state()
+
+    # initialize the frontier as a queue
+    # expanded nodes are stored inside a list in order to enable direct access to items
+    frontier = util.Queue()
+    expanded = []
+
+    # add the start state to both the expanded nodes and the frontier
+    # this allows for a clean initialization of the while loop
+    expanded.append(start)
+    frontier.push((start,[]))
+
+    # unlike dfs, we add the successors into expanded nodes directly after pushing them into the frontier
+    # this removes the possibility of a node being added into the frontier twice
+    # for example: if loc (the current node) has two successors A and B imagine the following situation
+    #              A is in first in queue and has successors E and F, 
+    #              meanwhile B is second in queue and has successors E and G
+    #              if we don't expand E right after it is added to the frontier, it would be added twice
+    
+    while not frontier.is_empty():
+        loc, path = frontier.pop()
+        if problem.is_goal_state(loc):
+            return path     
+        for succ, act, cost in problem.get_successors(loc):
+            if not succ in expanded:
+                npath = path + [act]
+                frontier.push((succ, npath))
+                expanded.append(succ)
+    return []
 
 def uniform_cost_search(problem):
     """Search the node of least total cost first."""
