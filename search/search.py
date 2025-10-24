@@ -127,15 +127,41 @@ def depth_first_search(problem):
 
     To get started, you might want to try some of these simple commands to
     understand the search problem that is being passed in:
-
-    print("Start:", problem.get_start_state())
-    print("Is the start a goal?", problem.is_goal_state(problem.get_start_state()))
-    print("Start's successors:", problem.get_successors(problem.get_start_state()))
     """
-    "*** YOUR CODE HERE ***"
-    util.raise_not_defined()
 
+    """print("Start:", problem.get_start_state())
+    print("Is the start a goal?", problem.is_goal_state(problem.get_start_state()))
+    print("Start's successors:", problem.get_successors(problem.get_start_state()))"""
 
+    start = problem.get_start_state()
+
+    # initialize separate stacks for the frontier and the expanded nodes of the graph
+    frontier = util.Stack()
+    expanded = util.Stack()
+
+    # expand the start node
+    expanded.push(start)
+
+    # add the successors of the start node into the frontier one by one
+    # each node in the frontier is a tuple that holds information about the location of the node and the path that led there
+    for succ, act, cost in problem.get_successors(start):
+        if (not expanded.contains(succ)):
+            frontier.push((succ, [act]))
+
+    # this loop expands each node in the frontier with the LIFO principle, while adding their successors to the frontier
+    # it continues traversing the graph until the goal state is reached or the frontier is empty
+    while not frontier.is_empty():
+        loc, path = frontier.pop()
+        if problem.is_goal_state(loc):
+            return path     
+        if (not expanded.contains(loc)):
+            expanded.push(loc)
+        for succ, act, cost in problem.get_successors(loc):
+            if (not expanded.contains(succ)):
+                # path until the current node + action required to get to its successor
+                npath = path + [act]
+                frontier.push((succ, npath))
+    return []
 
 def breadth_first_search(problem):
     """Search the shallowest nodes in the search tree first."""
