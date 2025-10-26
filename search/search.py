@@ -173,7 +173,40 @@ def depth_first_search(problem):
 def breadth_first_search(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    util.raise_not_defined()
+
+    # Initialize expanded_nodes
+    expanded_nodes = set()
+
+    # Initialize frontier with start state
+    frontier = util.Queue() # Use Queue for BFS (First in, first out)
+    start_state = problem.get_start_state()
+    frontier.push((start_state, [])) # Add initial state to frontier as a tuple (because we also need to store the path to reach it)
+    
+    # Loop through frontier until it is empty
+    while not frontier.is_empty():
+        # Choose the first node from the frontier to expand
+        current_state, path = frontier.pop() # Takes the last node added, and remove it from the frontier
+
+        # Add the current node to expanded_nodes
+        if current_state in expanded_nodes:
+            continue # If it already has been expanded, skip
+        expanded_nodes.add(current_state) # Add to expanded_nodes
+
+        # If the goal state has been reached
+        if problem.is_goal_state(current_state):
+            return path # Return the path to the goal state
+
+        # Expand the current node by getting all possible moves from this position
+        for successor_state, action, cost in problem.get_successors(current_state):
+            # Only add new position to frontier (if it hasn't already been visited)
+            if successor_state not in expanded_nodes:
+                # Creates a new path by adding the current action to the existing path
+                new_path = path + [action]
+                # Add this new state and its path to the frontier stack
+                frontier.push((successor_state, new_path))
+
+    # If it fails return an empty list
+    return []
 
 def uniform_cost_search(problem):
     """Search the node of least total cost first."""
