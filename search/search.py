@@ -147,10 +147,12 @@ def depth_first_search(problem):
         # Choose the first node from the frontier to expand
         current_state, path = frontier.pop() # Takes the last node added, and remove it from the frontier
         
-        # Add the current node to expanded_nodes
+        # If the current state is already expanded skip
         if current_state in expanded_nodes:
-            continue  # If it already has been expanded, skip
-        expanded_nodes.add(current_state) # Add to expanded_nodes
+            continue
+        
+        # Add to expanded_nodes
+        expanded_nodes.add(current_state)
         
         # If the goal state has been reached
         if problem.is_goal_state(current_state):
@@ -187,10 +189,12 @@ def breadth_first_search(problem):
         # Choose the first node from the frontier to expand
         current_state, path = frontier.pop() # Takes the last node added, and remove it from the frontier
 
-        # Add the current node to expanded_nodes
+        # If the current state is already expanded skip
         if current_state in expanded_nodes:
-            continue # If it already has been expanded, skip
-        expanded_nodes.add(current_state) # Add to expanded_nodes
+            continue
+
+        # Add to expanded_nodes
+        expanded_nodes.add(current_state)
 
         # If the goal state has been reached
         if problem.is_goal_state(current_state):
@@ -211,7 +215,44 @@ def breadth_first_search(problem):
 def uniform_cost_search(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
-    util.raise_not_defined()
+    
+    # Initialize expanded_nodes
+    expanded_nodes = set()
+
+    # Initialize frontier with start state
+    frontier = util.PriorityQueue() # Use priority queue for UCS (lowest cost will be expanded first)
+    start_state = problem.get_start_state()
+    frontier.push((start_state, [], 0), 0) # Add initial state to frontier with state, path and cost (priotity is the cost)
+
+    # Loop through frontier until it is empty
+    while not frontier.is_empty():
+        # Choose the node with lowest cost from the frontier to expand
+        current_state, path, current_cost = frontier.pop() # Get lowest cost node and remove it from frontier
+
+        # If the current state is already expanded skip
+        if current_state in expanded_nodes:
+            continue
+
+        # Add to expanded_nodes
+        expanded_nodes.add(current_state)
+
+        # If the goal state has been reached
+        if problem.is_goal_state(current_state):
+            return path # Return the path to the goal state
+
+        # Expand the current node by getting all possible moves from this position
+        for successor_state, action, step_cost in problem.get_successors(current_state):
+            # Only add new position to frontier (if it hasn't already been visited)
+            if successor_state not in expanded_nodes:
+                # Creates a new path by adding the current action to the existing path
+                new_path = path + [action]
+                # Calculate the new cost
+                new_cost = current_cost + step_cost
+                # Add this new state and its path to the frontier stack
+                frontier.push((successor_state, new_path, new_cost), new_cost)
+
+    # If it fails return an empty list
+    return []
 
 def null_heuristic(state, problem=None):
     """
