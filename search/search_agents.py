@@ -532,7 +532,7 @@ def food_heuristic(state, problem):
     """
     position, food_grid = state
     "*** YOUR CODE HERE ***"
-    return 0
+    return food_grid.count()
 
 
 def simplified_corners_heuristic(state, problem):
