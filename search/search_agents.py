@@ -532,7 +532,24 @@ def food_heuristic(state, problem):
     """
     position, food_grid = state
     "*** YOUR CODE HERE ***"
-    return 0
+
+    # get list of the food coordinates
+    food_list = food_grid.as_list()
+
+    # if all food is eater, return 0
+    if not food_list:
+        return 0
+
+    # calculate the maze distance between to the food furthest away
+    max_distance = 0
+    # for each food
+    for food in food_list:
+        # Manhattan distance formula: |x - x'| + |y - y'|
+        manhattan_dist = abs(position[0] - food[0]) + abs(position[1] - food[1])
+        max_distance = max(max_distance, manhattan_dist)
+
+    # return the maximum distance found
+    return max_distance
 
 
 def simplified_corners_heuristic(state, problem):
