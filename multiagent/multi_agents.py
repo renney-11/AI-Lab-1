@@ -73,15 +73,29 @@ class ReflexAgent(Agent):
         new_ghost_states = successor_game_state.get_ghost_states()
         new_scared_times = [ghostState.scared_timer for ghostState in new_ghost_states]
 
+        # for each ghost in the successor game state do the following:
         for state in new_ghost_states:
+            
+            # empty food distance list
             food_dist = []
+
+            # get the manhattan distance of the new position of pacman to the ghost
             ghost_dist = util.manhattan_distance(new_pos, state.get_position())
-            if new_scared_times != 0 and ghost_dist < 3:
+
+            # if the ghost is closer than 3 distance units away, correct the score of this successor state by
+            # adding the ghost distance to it (the closer the ghost, lower the score)
+            if ghost_dist < 3:
                 ghost_corrected_score = successor_game_state.get_score() + ghost_dist
                 return ghost_corrected_score
+            
+            # if the ghost is further away than 3 units, consider the distance to food.
             else: 
+                # add the distance to all food items in the successor game state to the list. 
                 for food in new_food.as_list():
                     food_dist.append(util.manhattan_distance(new_pos, food))
+                
+                # if there is indeed food, correct the score by adding a function of the closest food.
+                # the relative reward is much bigger for food items that are one distance unit away.
                 if food_dist:
                     food_corrected_score = successor_game_state.get_score() + 1/(min(food_dist))
                     return food_corrected_score
@@ -147,9 +161,57 @@ class MinimaxAgent(MultiAgentSearchAgent):
         game_state.is_lose():
         Returns whether or not the game state is a losing state
         """
-        "*** YOUR CODE HERE ***"
-        util.raise_not_defined()
-    
+        """
+        For each legal Pacman action:
+        generate the successor state
+        call helper(successor, depth=0, agent=1)
+        store (score, action)
+        Return the action with the highest score
+        """
+
+        # this helper function creates the recursion needed to traverse the tree
+        def helper(state, depth, agent):
+
+            # if there are no legal actions possible, return the score
+            if not state.get_legal_actions(agent):
+                return self.evaluation_function(state)
+            
+            # if the current state is win/lose or the maximum depth allowed is reached, return the score
+            if state.is_win() or state.is_lose() or depth == self.depth:
+                return self.evaluation_function(state)
+           
+            # successor scores will be stored in this
+            scores = []
+
+            # for all legal actions of the agent (pacman or ghost/s)
+            for action in state.get_legal_actions(agent):
+                # get the successor state
+                successor = state.generate_successor(agent, action)
+                # if the current agent is not the last one in the game:
+                if agent + 1 < state.get_num_agents():
+                    # append the score of its successors to the list.
+                    # this calls the helper function recursively for the next agent
+                    scores.append(helper(successor, depth, agent + 1))
+                # if the current agent is the last one, go back to pacman and increase the depth by one
+                else: scores.append(helper(successor, depth + 1, 0))
+            
+            # if the current agent is pacman get the maximum value out of the successor game states
+            # if ghost: minimum
+            if agent == 0: 
+                return max(scores)
+            else: return min(scores)
+
+        # store (score, action) tuples
+        moves = []
+
+        # for each (from the initial state) legal action of pacman, 
+        # generate successors and run the helper function for each.
+        # return the highest valued move.
+        for action in game_state.get_legal_actions(0):
+            successor = game_state.generate_successor(0, action)
+            moves.append((helper(successor, 0, 1), action))
+        return max(moves)[1]
+
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
