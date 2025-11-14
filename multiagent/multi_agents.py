@@ -222,9 +222,89 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         """
         Returns the minimax action using self.depth and self.evaluation_function
         """
-        "*** YOUR CODE HERE ***"
-        util.raise_not_defined()
+        # helper functions for the max value, pacman, and min value, ghosts
+        def max_value(state, depth, agent, alpha, beta):
+            # If there are no legal actions, we return the evaluation function value (score)
+            if not state.get_legal_actions(agent) or state.is_win() or state.is_lose() or depth == self.depth:
+                return self.evaluation_function(state)
 
+            # Initialize v to negative infinity
+            v = float('-inf')
+            # For each action of pacman
+            for action in state.get_legal_actions(agent):
+                # generate the successor state
+                successor = state.generate_successor(agent, action)
+                # get the min value from the first ghost, agent 1
+                v = max(v, min_value(successor, depth, 1, alpha, beta))
+                # if v (the value of this state) is > beta
+                if v > beta:
+                    # stop searching remaining actions because a min ancestor won't choose this path,
+                    # (it has a better option with value ≤ beta)
+                    return v
+                # update alpha
+                alpha = max(alpha, v)
+            # return value of this state
+            return v
+        
+        # helper function for ghost
+        def min_value(state, depth, agent, alpha, beta):
+            # If there are no legal actions, we return the evaluation function value (score)
+            if not state.get_legal_actions(agent) or state.is_win() or state.is_lose() or depth == self.depth:
+                return self.evaluation_function(state)
+
+            # Initialize v to positive infinity
+            v = float('inf')
+            # For each action of ghost
+            for action in state.get_legal_actions(agent):
+                # generate the successor state
+                successor = state.generate_successor(agent, action)
+                # check if this is the last ghost's turn (all agents have moved = one complete ply)
+                if agent + 1 >= state.get_num_agents():
+                    # go back to Pacman (agent 0) and increase depth by 1
+                    # depth + 1 since it has completed one full round of all agents moving
+                    # 0 because next turn is Pacman's
+                    # calls max_value because Pacman maximizes
+                    v = min(v, max_value(successor, depth + 1, 0, alpha, beta))
+                else:
+                    # not all ghosts have moved so continue to the next ghost
+                    # calls min_value because ghosts minimize
+                    v = min(v, min_value(successor, depth, agent + 1, alpha, beta))
+                # if v (the value of this state) is < alpha
+                if v < alpha:
+                    # stop searching remaining actions because a max ancestor won't choose this path,
+                    # (it has a better option with value ≥ alpha)
+                    return v
+                # update beta
+                beta = min(beta, v)
+            # return value of this state
+            return v
+        
+        # Initialize
+        alpha = float('-inf') # intialize alpha to -infinity
+        beta = float('inf') # initialize beta to +infinity
+        best_action = None # intialize best action to none (used to store the best action found)
+        best_value = float('-inf') # initialize best value to -infinity
+        
+        # Evaluate each legal action for Pacman
+        for action in game_state.get_legal_actions(0):
+            # Generate successor state
+            successor = game_state.generate_successor(0, action)
+            # Get value from first ghost (agent 1)
+            value = min_value(successor, 0, 1, alpha, beta)
+
+            # If the value is better than the best value found so far
+            if value > best_value:
+                # update best value
+                best_value = value
+                # update best action
+                best_action = action
+            
+            # Update alpha for root level
+            alpha = max(alpha, best_value)
+
+        # Return the best action found
+        return best_action
+        
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
